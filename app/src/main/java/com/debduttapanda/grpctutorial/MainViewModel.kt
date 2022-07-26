@@ -8,6 +8,7 @@ import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
 import io.grpc.stub.StreamObserver
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.*
@@ -47,6 +48,8 @@ class MainViewModel: ViewModel() {
 
     private val _buttonsEnabled = mutableStateOf(false)
     val buttonsEnabled:State<Boolean> = _buttonsEnabled
+
+
 
     /////////////////////////
     fun startRouteGuide() {
@@ -140,7 +143,7 @@ class MainViewModel: ViewModel() {
                     val point = points[index]
                     requestObserver.onNext(point)
                     // Sleep for a bit before sending the next one.
-                    Thread.sleep((rand.nextInt(1000) + 500).toLong())
+                    delay((rand.nextInt(1000) + 500).toLong())
                     if (finishLatch.count == 0L) {
                         // RPC completed or errored before we finished sending.
                         // Sending further requests won't error, but they will just be thrown away.
@@ -158,9 +161,8 @@ class MainViewModel: ViewModel() {
 
             // Receiving happens asynchronously
             if (!finishLatch.await(1, TimeUnit.MINUTES)) {
-                throw java.lang.RuntimeException(
-                    "Could not finish rpc within 1 minute, the server is likely down"
-                )
+                updateResult("Timeout error")
+                return@launch
             }
 
             if (failed != null) {
@@ -216,9 +218,8 @@ class MainViewModel: ViewModel() {
 
             // Receiving happens asynchronously
             if (!finishLatch.await(1, TimeUnit.MINUTES)) {
-                throw java.lang.RuntimeException(
-                    "Could not finish rpc within 1 minute, the server is likely down"
-                )
+                updateResult("Timeout error")
+                return@launch
             }
 
             if (failed != null) {
