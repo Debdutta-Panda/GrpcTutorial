@@ -208,7 +208,8 @@ class MainViewModel: ViewModel() {
             } catch (e: java.lang.RuntimeException) {
                 // Cancel RPC
                 requestObserver.onError(e)
-                throw e
+                updateResult(e.message?:"")
+                return@launch
             }
             // Mark the end of requests
             // Mark the end of requests
